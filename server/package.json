@@ -1,4 +1,15 @@
 {
+  "name": "flashmaster",
+  "version": "1.0.0",
+  "description": "Saas Flashcard backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Addy",
+  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.5",
     "firebase": "^10.12.5",
