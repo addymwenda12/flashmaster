@@ -1,6 +1,6 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const flashcardRoutes = require("./routes/flashcard.js");
+import express from "express";
+import dotenv from "dotenv";
+import flashcardRoutes from "./routes/flashcard.js";
 
 dotenv.config();
 
