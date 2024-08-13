@@ -1,5 +1,8 @@
 import express from "express";
 import flashcards from "../controllers/flashcards.js";
+import flashcardController from '../controllers/flashcardController.js';
+import progressController from '../controllers/progressController.js';
+import statisticsController from '../controllers/statisticsController.js'
 
 const router = express.Router();
 
@@ -34,6 +37,15 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to get flashcards" });
   }
 });
+
+// Route to get flashcard sets
+router.get("/sets", flashcardController.getFlashcardSets);
+
+// Route to get study progress
+router.get("/progress", progressController.getStudyProgress);
+
+// Route to get statistics
+router.get("/statistics", statisticsController.getStatistics);
 
 router.put("/:id", async (req, res) => {
   try {
