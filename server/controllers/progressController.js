@@ -7,6 +7,7 @@ async function getStudyProgress(req, res) {
       return res.status(400).json({ error: "Missing userId" });
     }
     const progress = await progressService.getStudyProgress(userId);
+    res.status(200).json(progress);
   } catch (error) {
     console.error("Error getting study progress: ", error);
     res.status(500).json({ error: "Failed to get study progress" });
