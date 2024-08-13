@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const flashcards = require('../controllers/flashcards.js');
-const authMiddleware = require('../middleware/auth.js');
-
-router.use(authMiddleware);
 
 router.post('/', async (req, res) => {
   try {
