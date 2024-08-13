@@ -78,8 +78,8 @@ router.delete("/:id", async (req, res) => {
           error:
             "Flashcard not found or you do not have permission to delete it",
         });
-    }
-    res.json(deletedFlashcard);
+      }
+    res.status(200).json(deletedFlashcard);
   } catch (error) {
     console.error("Error deleting flashcard: ", error);
     res.status(500).json({ error: "Failed to delete flashcard" });
