@@ -1,5 +1,5 @@
-import { db } from "./firebase.js";
-import {
+const { db } = require("./firebase.js");
+const {
   collection,
   addDoc,
   getDocs,
@@ -9,7 +9,7 @@ import {
   query,
   where,
   getDoc,
-} from "firebase/firestore";
+} = require("firebase/firestore");
 
 const flashcardsCollection = collection(db, "flashcards");
 
@@ -86,4 +86,9 @@ async function deleteFlashcard(flashcardId) {
   }
 }
 
-export { createFlashcard, getFlashcards, updateFlashcard, deleteFlashcard };
+module.exports = {
+  createFlashcard,
+  getFlashcards,
+  updateFlashcard,
+  deleteFlashcard,
+};
