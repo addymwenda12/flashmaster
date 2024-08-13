@@ -4,8 +4,8 @@ const flashcards = require('../controllers/flashcards.js');
 
 router.post('/', async (req, res) => {
   try {
-    // const userId = req.user.id;
-    const newFlashcard = await flashcards.createFlashcard(req.body);
+    const userId = req.body.userId;
+    const newFlashcard = await flashcards.createFlashcard(userId, req.body);
     res.status(201).json(newFlashcard);
   } catch (error) {
     console.error('Error creating flashcard: ', error);
@@ -15,7 +15,8 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const flashcardsList = await flashcards.getFlashcards();
+    const userId = req.query.userId;
+    const flashcardsList = await flashcards.getFlashcards(userId);
     res.status(200).json(flashcardsList);
   } catch (error) {
     console.error('Error getting flashcards: ', error);
