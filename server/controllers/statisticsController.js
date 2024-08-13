@@ -1,4 +1,4 @@
-import statisticsService from '../services/statisticsService';
+import statisticsService from '../services/statisticsService.js';
 
 async function getStatistics(req, res) {
   try {

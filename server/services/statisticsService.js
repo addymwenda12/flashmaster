@@ -36,3 +36,7 @@ async function getStatistics(userId) {
     throw error;
   }
 }
+
+export default {
+  getStatistics,
+};

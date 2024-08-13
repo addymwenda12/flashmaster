@@ -1,4 +1,4 @@
-import progressService from '../services/progressService';
+import progressService from '../services/progressService.js';
 
 async function getStudyProgress(req, res) {
   try {

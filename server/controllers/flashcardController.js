@@ -1,4 +1,4 @@
-import flashcardService from '../services/flashcardService';
+import flashcardService from '../services/flashcardService.js';
 
 async function getFlashcardSets(req, res) {
   try {
