@@ -86,4 +86,4 @@ async function deleteFlashcard(flashcardId) {
   }
 }
 
-export { createFlashcard, getFlashcards, updateFlashcard, deleteFlashcard };
+export default { createFlashcard, getFlashcards, updateFlashcard, deleteFlashcard };
