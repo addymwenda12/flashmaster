@@ -5,6 +5,9 @@ const flashcards = require('../controllers/flashcards.js');
 router.post('/', async (req, res) => {
   try {
     const userId = req.body.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required in the request body' });
+    }
     const newFlashcard = await flashcards.createFlashcard(userId, req.body);
     res.status(201).json(newFlashcard);
   } catch (error) {
@@ -16,6 +19,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required in the query parameters' });
+    }
     const flashcardsList = await flashcards.getFlashcards(userId);
     res.status(200).json(flashcardsList);
   } catch (error) {
