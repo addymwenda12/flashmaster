@@ -63,7 +63,7 @@ async function updateFlashcard(flashcardId, data) {
       updatedAt: new Date(),
     });
     const updatedFlashcard = await getDoc(flashcardRef);
-    return { id: flashcardId, ...updatedFlashcard.data() };
+    return { id: updatedFlashcard.id, ...updatedFlashcard.data() };
   } catch (error) {
     console.error("Error updating flashcard:", error);
     throw error;
@@ -79,7 +79,7 @@ async function deleteFlashcard(flashcardId) {
   try {
     const flashcardRef = doc(db, "flashcards", flashcardId);
     await deleteDoc(flashcardRef);
-    return { id: flashcardId, deleted: true };
+    return { id: flashcardId };
   } catch (error) {
     console.error("Error deleting flashcard:", error);
     throw error;
