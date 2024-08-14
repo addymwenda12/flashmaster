@@ -1,4 +1,4 @@
-import flashcardsetService from "../services/flashcardsetService";
+import flashcardsetService from "../services/flashcardsetService.js";
 
 /* CREATE */
 async function createFlashcardInSet(req, res) {
