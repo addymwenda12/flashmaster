@@ -2,10 +2,12 @@ import express from "express";
 import flashcards from "../controllers/flashcards.js";
 import flashcardController from '../controllers/flashcardController.js';
 import progressController from '../controllers/progressController.js';
-import statisticsController from '../controllers/statisticsController.js'
+import statisticsController from '../controllers/statisticsController.js';
+import flashcardSetController from "../controllers/flashcardSetController.js";
 
 const router = express.Router();
 
+/* CREATE ROUTES */
 router.post("/", async (req, res) => {
   try {
     const userId = req.body.userId;
@@ -22,6 +24,10 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Route to create a flashcard within a set
+router.post("/sets/:setId/flashcards", flashcardSetController.createFlashcardInSet);
+
+/* READ ROUTES */
 router.get("/", async (req, res) => {
   try {
     const userId = req.query.userId;
@@ -47,6 +53,7 @@ router.get("/progress", progressController.getStudyProgress);
 // Route to get statistics
 router.get("/statistics", statisticsController.getStatistics);
 
+/* UPDATE ROUTES */
 router.put("/:id", async (req, res) => {
   try {
     const updatedFlashcard = await flashcards.updateFlashcard(
@@ -68,6 +75,11 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Route to update a flashcard within a set
+router.put("/sets/:setId/flashcards/:flashcardId", flashcardSetController.updateFlashcardInSet);
+
+
+/* DELETE ROUTES */
 router.delete("/:id", async (req, res) => {
   try {
     const deletedFlashcard = await flashcards.deleteFlashcard(req.params.id);
@@ -85,5 +97,8 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete flashcard" });
   }
 });
+
+// Route to delete a flashcard within a set
+router.delete("/sets/:setId/flashcards/:flashcardId", flashcardSetController.deleteFlashcardInSet);
 
 export default router;
