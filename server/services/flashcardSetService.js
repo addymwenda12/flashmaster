@@ -11,6 +11,25 @@ import {
 const flashcardsCollection = collection(db, "flashcards");
 
 /* CREATE */
+async function createFlashcardSet(data) {
+  if (!data) {
+    throw new Error("Invalid input: data is required");
+  }
+
+  try {
+    const newFlashcardSet = {
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const docRef = await addDoc(collection(db, "flashcardSets"), newFlashcardSet);
+    return { id: docRef.id, ...newFlashcardSet };
+  } catch (error) {
+    console.error("Error creating flashcard set:", error);
+    throw error;
+  }
+}
+
 async function createFlashcardInSet(setId, data) {
   if (!setId || !data) {
     throw new Error("Invalid input: setId and data are required");
@@ -68,6 +87,7 @@ async function deleteFlashcardInSet(setId, flashcardId) {
 }
 
 export default {
+  createFlashcardSet,
   createFlashcardInSet,
   updateFlashcardInSet,
   deleteFlashcardInSet,

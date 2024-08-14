@@ -8,6 +8,8 @@ import flashcardSetController from "../controllers/flashcardSetController.js";
 const router = express.Router();
 
 /* CREATE ROUTES */
+// Route to create a flashcard set
+router.post("/sets", flashcardSetController.createFlashcardSet);
 // Route to create a flashcard within a set
 router.post("/sets/:setId/flashcards", flashcardSetController.createFlashcardInSet);
 

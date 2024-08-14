@@ -1,6 +1,20 @@
 import flashcardsetService from "../services/flashcardsetService.js";
 
 /* CREATE */
+async function createFlashcardSet(req, res) {
+  try {
+    const data = req.body;
+    if (!data) {
+      return res.status(400).json({ error: "Missing data" });
+    }
+    const newFlashcardSet = await flashcardsetService.createFlashcardSet(data);
+    res.status(201).json(newFlashcardSet);
+  } catch (error) {
+    console.error("Error creating flashcard set:", error);
+    res.status(500).json({ error: "Failed to create flashcard set" });
+  }
+}
+
 async function createFlashcardInSet(req, res) {
   try {
     const { setId } = req.params.setId;
@@ -50,6 +64,7 @@ async function deleteFlashcardInSet(req, res) {
 }
 
 export default {
+  createFlashcardSet,
   createFlashcardInSet,
   updateFlashcardInSet,
   deleteFlashcardInSet,
