@@ -40,6 +40,9 @@ router.get("/progress", progressController.getStudyProgress);
 // Route to get statistics
 router.get("/statistics", statisticsController.getStatistics);
 
+// Route to get search flashcards
+router.get("/search", flashcardController.searchFlashcardSets);
+
 router.get("/", async (req, res) => {
   try {
     const userId = req.query.userId;
