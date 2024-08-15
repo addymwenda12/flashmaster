@@ -20,6 +20,22 @@ async function getFlashcardSets(req, res) {
   }
 }
 
+async function searchFlashcardSets(req, res) {
+  try {
+    const { userId, searchTerm, shared } = req.query;
+    if (!userId || !searchTerm) {
+      return res.status(400).json({ error: "Missing userId or searchTerm" });
+    }
+
+    const flashcardSets = await flashcardService.searchFlashcardSets(userId, searchTerm, shared === 'true');
+    res.status(200).json(flashcardSets);
+  } catch (error) {
+    console.error("Error searching flashcards sets", error);
+    res.status(500).json({ error: "Failed to search flashcards sets" });
+  }
+}
+
 export default {
   getFlashcardSets,
+  searchFlashcardSets,
 };
