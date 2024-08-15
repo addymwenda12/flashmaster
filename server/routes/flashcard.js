@@ -102,4 +102,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+/* STUDY SESSION ROUTES */
+router.post('/study-session/assessment', studySessionController.submitAssessment);
+
 export default router;
