@@ -4,6 +4,7 @@ import flashcardController from '../controllers/flashcardController.js';
 import progressController from '../controllers/progressController.js';
 import statisticsController from '../controllers/statisticsController.js';
 import flashcardSetController from "../controllers/flashcardSetController.js";
+import studySessionController from "../controllers/studySessionController.js";
 
 const router = express.Router();
 
