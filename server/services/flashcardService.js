@@ -19,6 +19,29 @@ async function getFlashcardsSets(userId) {
   }
 }
 
+async function searchFlashcardSets(userId, searchTerm, shared = false) {
+  if (!userId || !searchTerm) {
+    throw new Error("Invalid input: userId and searchTerm are required");
+  }
+
+  try {
+    const q = query(
+      flashcardsCollection,
+      where("userId", "==", userId),
+      where("shared", "==", shared),
+      where("name", ">=", searchTerm),
+      where("name", "<=", searchTerm + '\uf8ff')
+    );
+    const snapshot = await getDocs(q);
+    const sets = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return sets;
+  } catch (error) {
+    console.error("Error searching flashcards sets: ", error);
+    throw error;
+  }
+}
+
 export default {
   getFlashcardsSets,
+  searchFlashcardSets,
 };
