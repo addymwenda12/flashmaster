@@ -1,5 +1,5 @@
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase.js';
 import stripe from '../config/stripe.js';
 
 /* GET SUBSCRIPTION TIER */
