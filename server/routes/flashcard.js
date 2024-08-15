@@ -9,8 +9,12 @@ import studySessionController from "../controllers/studySessionController.js";
 const router = express.Router();
 
 /* CREATE ROUTES */
+// Route to share a flashcard set
+router.post('/share', flashcardController.shareFlashcardSet);
+
 // Route to create a flashcard set
 router.post("/sets", flashcardSetController.createFlashcardSet);
+
 // Route to create a flashcard within a set
 router.post("/sets/:setId/flashcards", flashcardSetController.createFlashcardInSet);
 
@@ -45,6 +49,9 @@ router.get("/statistics", statisticsController.getStatistics);
 
 // Route to get search flashcards
 router.get("/search", flashcardController.searchFlashcardSets);
+
+// Route to get shared flashcard sets
+router.get('/shared', flashcardController.getSharedFlashcardSets);
 
 router.get("/", async (req, res) => {
   try {
