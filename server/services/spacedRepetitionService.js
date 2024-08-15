@@ -57,6 +57,13 @@ async function updateFlashcardReview(flashcardId, assessment) {
     nextReviewDate,
   });
 
+  // Save session data
+  await addDoc(studySessionsCollection, {
+    flashcardId,
+    assessment,
+    timestamp: new Date(),
+  });
+
   return { easinessFactor, interval, repetitions, nextReviewDate };
 }
 
