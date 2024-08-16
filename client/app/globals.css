@@ -2,32 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+/* Define custom fonts */
+@font-face {
+  font-family: 'GT Maru Regular';
+  src: url('/fonts/GT-Maru/GT-Maru-Regular-Trial.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+@font-face {
+  font-family: 'GT Maru Bold Oblique';
+  src: url('/fonts/GT-Maru/GT-Maru-Bold-Oblique-Trial.otf') format('opentype');
+  font-weight: 700;
+  font-style: oblique;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@font-face {
+  font-family: 'GT Maru Medium Italic';
+  src: url('/fonts/GT-Maru/GT-Maru-Medium-Oblique-Trial.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+@font-face {
+  font-family: 'GT Maru Medium Oblique';
+  src: url('/fonts/GT-Maru/GT-Maru-Medium-Trial.otf') format('opentype');
+  font-weight: 500;
+  font-style: oblique;
+}
+
+@font-face {
+  font-family: 'GT Maru Mega Mini';
+  src: url('/fonts/GT-Maru/GT-Maru-Mega-Mini-Trial.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT Maru Light';
+  src: url('/fonts/GT-Maru/GT-Maru-Light-Trial.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+/* Define Tailwind CSS utility classes for font styles */
+.font-regular {
+  font-family: 'GT Maru Regular';
+  font-weight: 400;
+  font-style: normal;
+}
+
+.font-bold-oblique {
+  font-family: 'GT Maru Bold Oblique';
+  font-weight: 700;
+  font-style: oblique;
+}
+
+.font-medium-italic {
+  font-family: 'GT Maru Medium Italic';
+  font-weight: 500;
+  font-style: italic;
+}
+
+.font-medium-oblique {
+  font-family: 'GT Maru Medium Oblique';
+  font-weight: 500;
+  font-style: oblique;
+}
+
+.font-mega-mini {
+  font-family: 'GT Maru Mega Mini';
+  font-weight: 900;
+  font-style: normal;
+}
+
+.font-light {
+  font-family: 'GT Maru Light';
+  font-weight: 300;
+  font-style: normal;
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
 }
