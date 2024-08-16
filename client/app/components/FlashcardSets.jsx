@@ -1,43 +1,76 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
+import axios from 'axios';
+import Link from "next/link";
 
-const mockData = [
-  { id: 1, title: "Spanish Vocabulary", cards: 50, lastUpdated: "2024-08-01" },
-  { id: 2, title: "Math Formulas", cards: 30, lastUpdated: "2024-07-20" },
-  { id: 3, title: "History Dates", cards: 20, lastUpdated: "2024-07-15" },
-  { id: 4, title: "Science Concepts", cards: 45, lastUpdated: "2024-08-05" },
-];
+function FlashcardSets() {
+  const [flashcardSets, setFlashcardSets] = useState([]);
+  const [error, setError] = useState(null);
 
-function Dashboard() {
+  useEffect(() => {
+    const fetchFlashcardSets = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/flashcards/sets");
+        setFlashcardSets(response.data);
+      } catch (error) {
+        setError(error.message || "Failed to fetch flashcard sets.");
+      }
+    };
+
+    fetchFlashcardSets();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this flashcard set?")) {
+      try {
+        await axios.delete(`http://localhost:3001/flashcards/sets/${id}`);
+        // Remove the deleted flashcard set from the state
+        setFlashcardSets(flashcardSets.filter(set => set.id !== id));
+        alert("Flashcard set deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting flashcard set:", error);
+        alert(error.response?.data?.error || "Failed to delete flashcard set.");
+      }
+    }
+  };
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 font-medium-oblique">Flashcard Sets</h1>
-      </header>
-      <main>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockData.map((set) => (
-            <div key={set.id} className="bg-white shadow-md rounded-lg p-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                {set.title}
-              </h2>
-              <p className="text-gray-600 mb-4">Number of Cards: {set.cards}</p>
-              <p className="text-gray-500 text-sm">
-                Last Updated: {set.lastUpdated}
-              </p>
-              <div className="mt-4 flex justify-end">
-                <a
-                  href={`/flashcards/${set.id}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  View Details
-                </a>
-              </div>
+    <div className="bg-slate-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {flashcardSets.length === 0 ? (
+        <p>No flashcard sets available.</p>
+      ) : (
+        flashcardSets.map((set) => (
+          <div key={set.id} className="bg-white shadow-xl rounded-lg p-4">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              {set.title}
+            </h2>
+            <p className="text-gray-600 mb-4">Number of Cards: {set.cards}</p>
+            <p className="text-gray-500 text-sm">
+              Last Updated: {set.lastUpdated}
+            </p>
+            <div className="mt-4 flex justify-between">
+              <Link
+                href={`/flashcards/${set.id}`}
+                className="text-blue-500 hover:underline"
+              >
+                Study Now
+              </Link>
+              <button
+                onClick={() => handleDelete(set.id)}
+                className="text-red-500 hover:underline"
+              >
+                Delete
+              </button>
             </div>
-          ))}
-        </div>
-      </main>
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
-export default Dashboard;
+export default FlashcardSets;
