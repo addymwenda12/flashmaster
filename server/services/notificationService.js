@@ -1,19 +1,22 @@
 import nodemailer from 'nodemailer';
 import cron from 'node-cron';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /* CONFIGURATION */
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: process.env.EMAIL_SERVICE,
   auth: {
-    user: 'your-email@gmail.com',
-    pass: 'your-email-password',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
 /* FUNCTIONS TO SEND EMAIL NOTIFICATIONS */
 async function sendEmailNotification(to, subject, text) {
   const mailOptions = {
-    from: 'your-email@gmail.com',
+    from: process.env.EMAIL_USER,
     to,
     subject,
     text,
