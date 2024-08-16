@@ -38,6 +38,9 @@ router.post("/", async (req, res) => {
 // Route to get flashcard sets
 router.get("/sets", flashcardController.getFlashcardSets);
 
+// Route to get a specific flashcard set
+router.get("/sets/:id", flashcardController.getFlashcardSets);
+
 // Route to get study progress
 router.get("/progress", progressController.getStudyProgress);
 
