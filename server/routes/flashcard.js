@@ -2,9 +2,21 @@ import express from "express";
 import flashcards from "../controllers/flashcards.js";
 import flashcardController from '../controllers/flashcardController.js';
 import progressController from '../controllers/progressController.js';
-import statisticsController from '../controllers/statisticsController.js'
+import statisticsController from '../controllers/statisticsController.js';
+import flashcardSetController from "../controllers/flashcardSetController.js";
+import studySessionController from "../controllers/studySessionController.js";
 
 const router = express.Router();
+
+/* CREATE ROUTES */
+// Route to share a flashcard set
+router.post('/share', flashcardController.shareFlashcardSet);
+
+// Route to create a flashcard set
+router.post("/sets", flashcardSetController.createFlashcardSet);
+
+// Route to create a flashcard within a set
+router.post("/sets/:setId/flashcards", flashcardSetController.createFlashcardInSet);
 
 router.post("/", async (req, res) => {
   try {
@@ -22,6 +34,25 @@ router.post("/", async (req, res) => {
   }
 });
 
+/* READ ROUTES */
+// Route to get flashcard sets
+router.get("/sets", flashcardController.getFlashcardSets);
+
+// Route to get study progress
+router.get("/progress", progressController.getStudyProgress);
+
+// Route to get daily study streaks
+router.get("/daily-streak", progressController.getDailyStudyStreak);
+
+// Route to get statistics
+router.get("/statistics", statisticsController.getStatistics);
+
+// Route to get search flashcards
+router.get("/search", flashcardController.searchFlashcardSets);
+
+// Route to get shared flashcard sets
+router.get('/shared', flashcardController.getSharedFlashcardSets);
+
 router.get("/", async (req, res) => {
   try {
     const userId = req.query.userId;
@@ -38,14 +69,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Route to get flashcard sets
-router.get("/sets", flashcardController.getFlashcardSets);
-
-// Route to get study progress
-router.get("/progress", progressController.getStudyProgress);
-
-// Route to get statistics
-router.get("/statistics", statisticsController.getStatistics);
+/* UPDATE ROUTES */
+// Route to update a flashcard within a set
+router.put("/sets/:setId/flashcards/:flashcardId", flashcardSetController.updateFlashcardInSet);
 
 router.put("/:id", async (req, res) => {
   try {
@@ -68,6 +94,10 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+/* DELETE ROUTES */
+// Route to delete a flashcard within a set
+router.delete("/sets/:setId/flashcards/:flashcardId", flashcardSetController.deleteFlashcardInSet);
+
 router.delete("/:id", async (req, res) => {
   try {
     const deletedFlashcard = await flashcards.deleteFlashcard(req.params.id);
@@ -85,5 +115,8 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete flashcard" });
   }
 });
+
+/* STUDY SESSION ROUTES */
+router.post('/study-session/assessment', studySessionController.submitAssessment);
 
 export default router;
