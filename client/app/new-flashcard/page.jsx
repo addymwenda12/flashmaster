@@ -1,6 +1,7 @@
 // form for creating new flashcard sets
 "use client";
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function NewFlashCardForm() {
   const [userId, setUserId] = useState('');
@@ -22,7 +23,7 @@ export default function NewFlashCardForm() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3001/flashcards', {
+      const response = await fetch(`${API_BASE_URL}/flashcards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

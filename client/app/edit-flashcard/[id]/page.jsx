@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { API_BASE_URL } from '../../config';
 
 export default function EditFlashCardPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function EditFlashCardPage() {
     if (id) {
       const fetchFlashcard = async () => {
         try {
-          const response = await fetch(`http://localhost:3001/flashcards/${id}`);
+          const response = await fetch(`${API_BASE_URL}/flashcards/${id}`);
           const data = await response.json();
 
           if (response.ok) {
@@ -49,7 +50,7 @@ export default function EditFlashCardPage() {
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:3001/flashcards/${id}`, {
+      const response = await fetch(`${API_BASE_URL}}/flashcards/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

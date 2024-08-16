@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "jest",
+    "build-client": "cd ../client && npm run build",
     "start": "nodemon index.js",
     "dev": "nodemon index.js"
   },

@@ -1,15 +1,30 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+// import path from "path";
+// import { fileURLToPath } from "url";
 import flashcardRoutes from "./routes/flashcard.js";
 import vertexRoutes from "./routes/vertex.js";
 import languageRoutes from "./routes/language.js";
 import subscriptionRoutes from "./routes/subscription.js";
 import friendRoutes from "./routes/friend.js";
 
+/* CONFIGURATION */
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
+// Get __dirname equivalent in ES module
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// Serve static files from the React app
+// app.use(express.static(path.join(__dirname, '../client/out')));
+// app.get('*', (req, res) => {
+  // res.sendFile(path.join(__dirname, '../client/out/index.html'));
+// });
 
 /* ROUTES */
 app.use("/api/flashcards", flashcardRoutes);
