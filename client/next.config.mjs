@@ -1,18 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
+  async rewrites() {
     return [
       {
-        source: '/profile',
-        destination: '/sign-in',
-        permanent: false,
-        has: [
-          {
-            type: 'cookie',
-            key: '__session',
-            value: '^(?!.*)$', // Redirect if no session cookie
-          },
-        ],
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*', // Proxy to Backend
       },
     ];
   },
