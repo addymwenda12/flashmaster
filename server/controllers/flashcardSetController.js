@@ -22,11 +22,14 @@ async function createFlashcardInSet(req, res) {
     if (!setId || !data) {
       return res.status(400).json({ error: "Missing setId or data" });
     }
-    const newFlashcard = await flashcardsetService.createFlashcardInSet(setId, data);
+    const newFlashcard = await flashcardsetService.createFlashcardInSet(
+      setId,
+      data
+    );
     res.status(201).json(newFlashcard);
   } catch (error) {
     console.error("Error creating flashcard:", error);
-    res.status(500).json({ error: "Failed to create flashcard in set"});
+    res.status(500).json({ error: "Failed to create flashcard in set" });
   }
 }
 
@@ -37,13 +40,19 @@ async function updateFlashcardInSet(req, res) {
     const flashcardId = req.params.flashcardId;
     const data = req.body;
     if (!setId || !flashcardId || !data) {
-      return res.status(400).json({ error: "Missing setId, flashcardId, or data" });
+      return res
+        .status(400)
+        .json({ error: "Missing setId, flashcardId, or data" });
     }
-    const updatedFlashcard = await flashcardsetService.updateFlashcardInSet(setId, flashcardId, data);
+    const updatedFlashcard = await flashcardsetService.updateFlashcardInSet(
+      setId,
+      flashcardId,
+      data
+    );
     res.status(200).json(updatedFlashcard);
   } catch (error) {
     console.error("Error updating flashcard in set:", error);
-    res.status(500).json({ error: "Failed to update flashcard in set"});
+    res.status(500).json({ error: "Failed to update flashcard in set" });
   }
 }
 
@@ -55,11 +64,14 @@ async function deleteFlashcardInSet(req, res) {
     if (!setId || !flashcardId) {
       return res.status(400).json({ error: "Missing setId or flashcardId" });
     }
-    const deletedFlashcard = await flashcardsetService.deleteFlashcardInSet(setId, flashcardId);
+    const deletedFlashcard = await flashcardsetService.deleteFlashcardInSet(
+      setId,
+      flashcardId
+    );
     res.status(200).json(deletedFlashcard);
   } catch (error) {
     console.error("Error deleting flashcard in set:", error);
-    res.status(500).json({ error: "Failed to delete flashcard in set"});
+    res.status(500).json({ error: "Failed to delete flashcard in set" });
   }
 }
 
