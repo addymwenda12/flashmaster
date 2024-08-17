@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import SideNav from "../components/SideNav";
+import { API_BASE_URL } from "../config";
 
 function DashBoardPage() {
   const [flashcardSets, setFlashcardSets] = useState([]);
@@ -13,7 +14,7 @@ function DashBoardPage() {
     // Fetch flashcard sets from the API
     const fetchFlashcardSets = async () => {
       try {
-        const response = await axios.get('http:localhost:3001/sets');
+        const response = await axios.get(`${API_BASE_URL}/api/sets`);
         setFlashcardSets(response.data);
       } catch (error) {
         setError(error.message || "Failed to fetch flashcard sets.");
@@ -24,8 +25,8 @@ function DashBoardPage() {
     const fetchProgressAndStreak = async () => {
       try {
         const [progressResponse, streakResponse] = await Promise.all([
-          axios.get('http:localhost:3001/progress'),
-          axios.get('http:localhost:3001/daily-streak')
+          axios.get(`${API_BASE_URL}/progress`),
+          axios.get(`${API_BASE_URL}/daily-streak`)
         ]);
 
         setProgress(progressResponse.data.progress);
@@ -41,7 +42,7 @@ function DashBoardPage() {
 
   const handleDelete = async (setId) => {
     try {
-      await axios.delete(`http:localhost:3001/sets/${setId}`);
+      await axios.delete(`${API_BASE_URL}/sets/${setId}`);
       setFlashcardSets(flashcardSets.filter(set => set.id !== setId));
     } catch (error) {
       setError(error.message || "Failed to delete flashcard set.");

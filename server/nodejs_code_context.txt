@@ -1,0 +1,765 @@
+// File: lib/googleClient.js
+import { PredictionServiceClient } from '@google-cloud/aiplatform';
+import { LanguageServiceClient } from '@google-cloud/language';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const vertexClient = new PredictionServiceClient({
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_LANGUAGE,
+});
+
+const languageClient = new LanguageServiceClient({
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_VERTEXAI,
+});
+
+export { vertexClient, languageClient };
+// File: controllers/flashcardController.js
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase.js';
+import flashcardService from '../services/flashcardService.js';
+import { getUserSubscriptionTier } from '../services/subscriptionService.js';
+
+const sharedFlashcardsCollection = collection(db, 'sharedFlashcards');
+
+async function getFlashcardSets(req, res) {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
+    const subscriptionTier = await getUserSubscriptionTier(userId);
+    if (subbscriptionTier === 'free') {
+      return res.status(403).json({ error: "Upgrade to Premium to access this feature" });
+    }
+    const flashcardSets = await flashcardService.getFlashcardsSets(userId);
+    res.status(200).json(flashcardSets);
+  } catch (error) {
+    console.error("Error getting flashcards sets", error);
+    res.status(500).json({ error: "Failed to get flashcards sets" });
+  }
+}
+
+async function searchFlashcardSets(req, res) {
+  try {
+    const { userId, searchTerm, shared } = req.query;
+    if (!userId || !searchTerm) {
+      return res.status(400).json({ error: "Missing userId or searchTerm" });
+    }
+
+    const flashcardSets = await flashcardService.searchFlashcardSets(userId, searchTerm, shared === 'true');
+    res.status(200).json(flashcardSets);
+  } catch (error) {
+    console.error("Error searching flashcards sets", error);
+    res.status(500).json({ error: "Failed to search flashcards sets" });
+  }
+}
+
+export async function shareFlashcardSet(req, res) {
+  try {
+    const { userId, setId, friendId } = req.body;
+    if (!userId || !setId || !friendId) {
+      return res.status(400).json({ error: 'Missing userId, setId, or friendId' });
+    }
+
+    const newShare = await addDoc(sharedFlashcardsCollection, { userId, setId, friendId });
+    res.status(201).json({ id: newShare.id });
+  } catch (error) {
+    console.error('Error sharing flashcard set:', error);
+    res.status(500).json({ error: 'Failed to share flashcard set' });
+  }
+}
+
+export async function getSharedFlashcardSets(req, res) {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    const q = query(sharedFlashcardsCollection, where('friendId', '==', userId));
+    const snapshot = await getDocs(q);
+    const sharedSets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(sharedSets);
+  } catch (error) {
+    console.error('Error getting shared flashcard sets:', error);
+    res.status(500).json({ error: 'Failed to get shared flashcard sets' });
+  }
+}
+
+export default {
+  getFlashcardSets,
+  searchFlashcardSets,
+  shareFlashcardSet,
+  getSharedFlashcardSets,
+};
+// File: controllers/flashcards.js
+import { db } from "../firebase.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  getDoc,
+} from "firebase/firestore";
+
+const flashcardsCollection = collection(db, "flashcards");
+
+/* CREATE */
+async function createFlashcard(userId, data) {
+  if (!userId || !data) {
+    throw new Error("Invalid input: userId and data are required");
+  }
+
+  try {
+    const newFlashcard = {
+      userId,
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const docRef = await addDoc(flashcardsCollection, newFlashcard);
+    return { id: docRef.id, ...newFlashcard };
+  } catch (error) {
+    console.error("Error creating flashcard:", error);
+    throw error;
+  }
+}
+
+/* READ */
+async function getFlashcards(userId) {
+  if (!userId) {
+    throw new Error("Invalid input: userId is required");
+  }
+
+  try {
+    const q = query(flashcardsCollection, where("userId", "==", userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error getting flashcards:", error);
+    throw error;
+  }
+}
+
+/* UPDATE */
+async function updateFlashcard(flashcardId, data) {
+  if (!flashcardId || !data) {
+    throw new Error("Invalid input: flashcardId and data are required");
+  }
+
+  try {
+    const flashcardRef = doc(db, "flashcards", flashcardId);
+    await updateDoc(flashcardRef, {
+      ...data,
+      updatedAt: new Date(),
+    });
+    const updatedFlashcard = await getDoc(flashcardRef);
+    return { id: updatedFlashcard.id, ...updatedFlashcard.data() };
+  } catch (error) {
+    console.error("Error updating flashcard:", error);
+    throw error;
+  }
+}
+
+/* DELETE */
+async function deleteFlashcard(flashcardId) {
+  if (!flashcardId) {
+    throw new Error("Invalid input: flashcardId is required");
+  }
+
+  try {
+    const flashcardRef = doc(db, "flashcards", flashcardId);
+    await deleteDoc(flashcardRef);
+    return { id: flashcardId };
+  } catch (error) {
+    console.error("Error deleting flashcard:", error);
+    throw error;
+  }
+}
+
+export default { createFlashcard, getFlashcards, updateFlashcard, deleteFlashcard };
+
+// File: controllers/flashcards.test.js
+import {
+  createFlashcard,
+  getFlashcards,
+  updateFlashcard,
+  deleteFlashcard,
+} from './flashcards';
+import {
+  mockAddDoc,
+  mockGetDocs,
+  mockUpdateDoc,
+  mockDeleteDoc,
+  mockDoc,
+  mockQuery,
+  mockWhere,
+  mockGetDoc,
+} from '../__mocks__/firebase';
+
+jest.mock('../firebase', () => ({
+  db: {},
+  collection: jest.fn(() => 'flashcardsCollection'),
+  addDoc: mockAddDoc,
+  getDocs: mockGetDocs,
+  updateDoc: mockUpdateDoc,
+  deleteDoc: mockDeleteDoc,
+  doc: mockDoc,
+  query: mockQuery,
+  where: mockWhere,
+  getDoc: mockGetDoc,
+}));
+
+describe('Flashcards Service', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('createFlashcard should create a new flashcard', async () => {
+    const userId = 'user123';
+    const data = { question: 'What is 2+2?', answer: '4' };
+    const mockDocRef = { id: 'flashcard123' };
+    mockAddDoc.mockResolvedValue(mockDocRef);
+
+    const result = await createFlashcard(userId, data);
+
+    expect(mockAddDoc).toHaveBeenCalledWith('flashcardsCollection', {
+      userId,
+      ...data,
+      createdAt: expect.any(Date),
+      updatedAt: expect.any(Date),
+    });
+    expect(result).toEqual({ id: 'flashcard123', userId, ...data, createdAt: expect.any(Date), updatedAt: expect.any(Date) });
+  });
+
+  test('getFlashcards should return a list of flashcards', async () => {
+    const userId = 'user123';
+    const mockSnapshot = {
+      docs: [
+        { id: 'flashcard1', data: () => ({ question: 'What is 2+2?', answer: '4' }) },
+        { id: 'flashcard2', data: () => ({ question: 'What is 3+3?', answer: '6' }) },
+      ],
+    };
+    mockGetDocs.mockResolvedValue(mockSnapshot);
+
+    const result = await getFlashcards(userId);
+
+    expect(mockQuery).toHaveBeenCalledWith('flashcardsCollection', mockWhere('userId', '==', userId));
+    expect(result).toEqual([
+      { id: 'flashcard1', question: 'What is 2+2?', answer: '4' },
+      { id: 'flashcard2', question: 'What is 3+3?', answer: '6' },
+    ]);
+  });
+
+  test('updateFlashcard should update an existing flashcard', async () => {
+    const flashcardId = 'flashcard123';
+    const data = { question: 'What is 2+3?', answer: '5' };
+    const mockUpdatedFlashcard = { id: flashcardId, ...data, updatedAt: new Date() };
+    mockUpdateDoc.mockResolvedValue();
+    mockGetDoc.mockResolvedValue({ data: () => mockUpdatedFlashcard });
+
+    const result = await updateFlashcard(flashcardId, data);
+
+    expect(mockDoc).toHaveBeenCalledWith({}, 'flashcards', flashcardId);
+    expect(mockUpdateDoc).toHaveBeenCalledWith(mockDoc(), { ...data, updatedAt: expect.any(Date) });
+    expect(result).toEqual(mockUpdatedFlashcard);
+  });
+
+  test('deleteFlashcard should delete an existing flashcard', async () => {
+    const flashcardId = 'flashcard123';
+    mockDeleteDoc.mockResolvedValue();
+
+    const result = await deleteFlashcard(flashcardId);
+
+    expect(mockDoc).toHaveBeenCalledWith({}, 'flashcards', flashcardId);
+    expect(mockDeleteDoc).toHaveBeenCalledWith(mockDoc());
+    expect(result).toEqual({ id: flashcardId, deleted: true });
+  });
+});
+// File: controllers/flashcardSetController.js
+import flashcardsetService from "../services/flashcardsetService.js";
+
+/* CREATE */
+async function createFlashcardSet(req, res) {
+  try {
+    const data = req.body;
+    if (!data) {
+      return res.status(400).json({ error: "Missing data" });
+    }
+    const newFlashcardSet = await flashcardsetService.createFlashcardSet(data);
+    res.status(201).json(newFlashcardSet);
+  } catch (error) {
+    console.error("Error creating flashcard set:", error);
+    res.status(500).json({ error: "Failed to create flashcard set" });
+  }
+}
+
+async function createFlashcardInSet(req, res) {
+  try {
+    const { setId } = req.params.setId;
+    const data = req.body;
+    if (!setId || !data) {
+      return res.status(400).json({ error: "Missing setId or data" });
+    }
+    const newFlashcard = await flashcardsetService.createFlashcardInSet(setId, data);
+    res.status(201).json(newFlashcard);
+  } catch (error) {
+    console.error("Error creating flashcard:", error);
+    res.status(500).json({ error: "Failed to create flashcard in set"});
+  }
+}
+
+/* UPDATE */
+async function updateFlashcardInSet(req, res) {
+  try {
+    const setId = req.params.setId;
+    const flashcardId = req.params.flashcardId;
+    const data = req.body;
+    if (!setId || !flashcardId || !data) {
+      return res.status(400).json({ error: "Missing setId, flashcardId, or data" });
+    }
+    const updatedFlashcard = await flashcardsetService.updateFlashcardInSet(setId, flashcardId, data);
+    res.status(200).json(updatedFlashcard);
+  } catch (error) {
+    console.error("Error updating flashcard in set:", error);
+    res.status(500).json({ error: "Failed to update flashcard in set"});
+  }
+}
+
+/* DELETE */
+async function deleteFlashcardInSet(req, res) {
+  try {
+    const setId = req.params.setId;
+    const flashcardId = req.params.flashcardId;
+    if (!setId || !flashcardId) {
+      return res.status(400).json({ error: "Missing setId or flashcardId" });
+    }
+    const deletedFlashcard = await flashcardsetService.deleteFlashcardInSet(setId, flashcardId);
+    res.status(200).json(deletedFlashcard);
+  } catch (error) {
+    console.error("Error deleting flashcard in set:", error);
+    res.status(500).json({ error: "Failed to delete flashcard in set"});
+  }
+}
+
+export default {
+  createFlashcardSet,
+  createFlashcardInSet,
+  updateFlashcardInSet,
+  deleteFlashcardInSet,
+};
+// File: controllers/friendController.js
+import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase.js';
+
+const friendRequestsCollection = collection(db, 'friendRequests');
+
+export async function sendFriendRequest(req, res) {
+  try {
+    const { senderId, receiverId } = req.body;
+    if (!senderId || !receiverId) {
+      return res.status(400).json({ error: 'Missing senderId or receiverId' });
+    }
+
+    const newRequest = await addDoc(friendRequestsCollection, { senderId, receiverId, status: 'pending' });
+    res.status(201).json({ id: newRequest.id });
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    res.status(500).json({ error: 'Failed to send friend request' });
+  }
+}
+
+export async function acceptFriendRequest(req, res) {
+  try {
+    const { requestId } = req.body;
+    if (!requestId) {
+      return res.status(400).json({ error: 'Missing requestId' });
+    }
+
+    const requestRef = doc(db, 'friendRequests', requestId);
+    await updateDoc(requestRef, { status: 'accepted' });
+    res.status(200).json({ message: 'Friend request accepted' });
+  } catch (error) {
+    console.error('Error accepting friend request:', error);
+    res.status(500).json({ error: 'Failed to accept friend request' });
+  }
+}
+
+export async function rejectFriendRequest(req, res) {
+  try {
+    const { requestId } = req.body;
+    if (!requestId) {
+      return res.status(400).json({ error: 'Missing requestId' });
+    }
+
+    const requestRef = doc(db, 'friendRequests', requestId);
+    await updateDoc(requestRef, { status: 'rejected' });
+    res.status(200).json({ message: 'Friend request rejected' });
+  } catch (error) {
+    console.error('Error rejecting friend request:', error);
+    res.status(500).json({ error: 'Failed to reject friend request' });
+  }
+}
+
+export async function getFriendRequests(req, res) {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    const q = query(friendRequestsCollection, where('receiverId', '==', userId), where('status', '==', 'pending'));
+    const snapshot = await getDocs(q);
+    const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(requests);
+  } catch (error) {
+    console.error('Error getting friend requests:', error);
+    res.status(500).json({ error: 'Failed to get friend requests' });
+  }
+}
+
+export default {
+  sendFriendRequest,
+  acceptFriendRequest,
+  rejectFriendRequest,
+  getFriendRequests,
+};
+// File: controllers/googleLanguageController.js
+import { languageClient } from '../lib/googleClient.js';
+
+export async function analyzeText(req, res) {
+  try {
+    const { text } = req.body;
+
+    const document = {
+      content: text,
+      type: 'PLAIN_TEXT',
+    };
+
+    const [result] = await languageClient.analyzeSentiment({ document });
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error analyzing text:', error.message);
+    res.status(500).json({ error: 'Failed to analyze text' });
+  }
+}
+// File: controllers/googleVertexController.js
+import { vertexClient } from '../lib/googleClient.js';
+
+export async function generateContent(req, res) {
+  try {
+    const { prompt } = req.body;
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+    const location = 'us-central1';
+    const endpointId = process.env.GOOGLE_CLOUD_ENDPOINT_ID;
+
+    const request = {
+      endpoint: `projects/${projectId}/locations/${location}/endpoints/${endpointId}`,
+      instances: [{ content: prompt }],
+    };
+
+    const [response] = await vertexClient.predict(request);
+    if (response.predictions && response.predictions.length > 0) {
+      res.status(200).json({ content: response.predictions[0].content });
+    } else {
+      res.status(500).json({ error: 'No predictions returned from Vertex AI' });
+    }
+  } catch (error) {
+    console.error('Error generating content:', error.message);
+    res.status(500).json({ error: 'Failed to generate content' });
+  }
+}
+// File: controllers/progressController.js
+import progressService from '../services/progressService.js';
+
+async function getStudyProgress(req, res) {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const progress = await progressService.getStudyProgress(userId);
+    res.status(200).json(progress);
+  } catch (error) {
+    console.error("Error getting study progress: ", error);
+    res.status(500).json({ error: "Failed to get study progress" });
+  }
+}
+
+async function getDailyStudyStreak(req, res) {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const streaks = await progressService.getDailyStudyStreak(userId);
+    res.status(200).json(streaks);
+  } catch (error) {
+    console.error("Error getting daily study streaks: ", error);
+    res.status(500).json({ error: "Failed to get daily study streaks" });
+  }
+}
+
+export default {
+  getStudyProgress,
+  getDailyStudyStreak,
+};
+// File: controllers/statisticsController.js
+import statisticsService from '../services/statisticsService.js';
+
+async function getStatistics(req, res) {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const statistics = await statisticsService.getStatistics(userId);
+    res.status(200).json(statistics);
+  } catch (error) {
+    console.error("Error getting statistics: ", error);
+    res.status(500).json({ error: "Failed to get statistics" });
+  }
+}
+
+export default {
+  getStatistics,
+};
+// File: controllers/studySessionController.js
+import spacedRepetitionService from '../services/spacedRepetitionService.js';
+
+async function submitAssessment(req, res) {
+  try {
+    const { flashcardId, assessment } = req.body;
+    if (!flashcardId || !assessment) {
+      return res.status(400).json({ error: 'Missing flashcardId or assessment' });
+    }
+
+    const result = await spacedRepetitionService.updateFlashcardReview(flashcardId, assessment);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error submitting assessment:', error);
+    res.status(500).json({ error: 'Failed to submit assessment' });
+  }
+}
+
+export default {
+  submitAssessment,
+};
+// File: controllers/subscriptionController.js
+import stripe from '../config/stripe.js';
+
+export async function createCheckoutSession(req, res) {
+  try {
+    const { priceId } = req.body;
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL}/cancel`,
+    });
+
+    res.status(200).json({ sessionId: session.id });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+}
+// File: routes/flashcard.js
+import express from "express";
+import flashcards from "../controllers/flashcards.js";
+import flashcardController from '../controllers/flashcardController.js';
+import progressController from '../controllers/progressController.js';
+import statisticsController from '../controllers/statisticsController.js';
+import flashcardSetController from "../controllers/flashcardSetController.js";
+import studySessionController from "../controllers/studySessionController.js";
+
+const router = express.Router();
+
+/* CREATE ROUTES */
+// Route to share a flashcard set
+router.post('/share', flashcardController.shareFlashcardSet);
+
+// Route to create a flashcard set
+router.post("/sets", flashcardSetController.createFlashcardSet);
+
+// Route to create a flashcard within a set
+router.post("/sets/:setId/flashcards", flashcardSetController.createFlashcardInSet);
+
+router.post("/", async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "userId is required in the request body" });
+    }
+    const newFlashcard = await flashcards.createFlashcard(userId, req.body);
+    res.status(201).json(newFlashcard);
+  } catch (error) {
+    console.error("Error creating flashcard: ", error);
+    res.status(500).json({ error: "Failed to create flashcard" });
+  }
+});
+
+/* READ ROUTES */
+// Route to get flashcard sets
+router.get("/sets", flashcardController.getFlashcardSets);
+
+// Route to get study progress
+router.get("/progress", progressController.getStudyProgress);
+
+// Route to get daily study streaks
+router.get("/daily-streak", progressController.getDailyStudyStreak);
+
+// Route to get statistics
+router.get("/statistics", statisticsController.getStatistics);
+
+// Route to get search flashcards
+router.get("/search", flashcardController.searchFlashcardSets);
+
+// Route to get shared flashcard sets
+router.get('/shared', flashcardController.getSharedFlashcardSets);
+
+router.get("/", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "userId is required in the query parameters" });
+    }
+    const flashcardsList = await flashcards.getFlashcards(userId);
+    res.status(200).json(flashcardsList);
+  } catch (error) {
+    console.error("Error getting flashcards: ", error);
+    res.status(500).json({ error: "Failed to get flashcards" });
+  }
+});
+
+/* UPDATE ROUTES */
+// Route to update a flashcard within a set
+router.put("/sets/:setId/flashcards/:flashcardId", flashcardSetController.updateFlashcardInSet);
+
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedFlashcard = await flashcards.updateFlashcard(
+      req.params.id,
+      req.body
+    );
+    if (!updatedFlashcard) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Flashcard not found or you do not have permission to update it",
+        });
+    }
+    res.json(updatedFlashcard);
+  } catch (error) {
+    console.error("Error updating flashcard: ", error);
+    res.status(500).json({ error: "Failed to update flashcard" });
+  }
+});
+
+/* DELETE ROUTES */
+// Route to delete a flashcard within a set
+router.delete("/sets/:setId/flashcards/:flashcardId", flashcardSetController.deleteFlashcardInSet);
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const deletedFlashcard = await flashcards.deleteFlashcard(req.params.id);
+    if (!deletedFlashcard) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Flashcard not found or you do not have permission to delete it",
+        });
+      }
+    res.status(200).json(deletedFlashcard);
+  } catch (error) {
+    console.error("Error deleting flashcard: ", error);
+    res.status(500).json({ error: "Failed to delete flashcard" });
+  }
+});
+
+/* STUDY SESSION ROUTES */
+router.post('/study-session/assessment', studySessionController.submitAssessment);
+
+export default router;
+
+// File: routes/friend.js
+import express from "express";
+import friendController from "../controllers/friendController.js";
+
+const router = express.Router();
+
+router.post("/send-request", friendController.sendFriendRequest);
+router.post("/accept-request", friendController.acceptFriendRequest);
+router.post("/reject-request", friendController.rejectFriendRequest);
+router.get("/requests", friendController.getFriendRequests);
+
+export default router;
+
+// File: routes/language.js
+import express from 'express';
+import { analyzeText } from '../controllers/googleLanguageController.js';
+
+const router = express.Router();
+
+router.post('/analyze-text', analyzeText);
+
+export default router;
+// File: routes/subscription.js
+import express from 'express';
+import { createCheckoutSession } from '../controllers/subscriptionController.js';
+
+const router = express.Router();
+
+router.post('/create-checkout-session', createCheckoutSession);
+
+export default router;
+// File: routes/vertex.js
+import express from 'express';
+import { generateContent } from '../controllers/googleVertexController.js';
+
+const router = express.Router();
+
+router.post('/generate-content', generateContent);
+
+export default router;
+
+// File: config/stripe.js
+import Stripe from 'stripe';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default stripe;
+// File: config/subscriptionTiers.js
+export const subscriptionTiers = {
+  free: {
+    name: 'Free',
+    priceId: null,
+    features: ['Basic flashcards', 'Limited AI content generation'],
+  },
+  premium: {
+    name: 'Premium',
+    priceId: 'prod_QfPF7RKu6kLkYJ',
+    features: ['Unlimited flashcards', 'Advanced AI content generation', 'Priority support'],
+  },
+};

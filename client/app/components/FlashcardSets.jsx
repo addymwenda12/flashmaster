@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import Link from "next/link";
+import { API_BASE_URL } from "../config";
 
 function FlashcardSets() {
   const [flashcardSets, setFlashcardSets] = useState([]);
@@ -10,7 +11,7 @@ function FlashcardSets() {
   useEffect(() => {
     const fetchFlashcardSets = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/flashcards/sets");
+        const response = await axios.get(`${API_BASE_URL}/flashcards/sets`);
         setFlashcardSets(response.data);
       } catch (error) {
         setError(error.message || "Failed to fetch flashcard sets.");
@@ -23,7 +24,7 @@ function FlashcardSets() {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this flashcard set?")) {
       try {
-        await axios.delete(`http://localhost:3001/flashcards/sets/${id}`);
+        await axios.delete(`${API_BASE_URL}/flashcards/sets/${id}`);
         // Remove the deleted flashcard set from the state
         setFlashcardSets(flashcardSets.filter(set => set.id !== id));
         alert("Flashcard set deleted successfully.");

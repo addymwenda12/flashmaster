@@ -13,7 +13,7 @@ async function getFlashcardSets(req, res) {
     }
 
     const subscriptionTier = await getUserSubscriptionTier(userId);
-    if (subbscriptionTier === 'free') {
+    if (subscriptionTier === 'free') {
       return res.status(403).json({ error: "Upgrade to Premium to access this feature" });
     }
     const flashcardSets = await flashcardService.getFlashcardsSets(userId);
