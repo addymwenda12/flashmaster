@@ -49,7 +49,7 @@ export default function NewFlashCardForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white shadow-lg rounded-lg">
+    <div className="max-w-md mx-auto p-4 bg-white shadow-lg rounded-lg mt-14">
       <h2 className="text-2xl font-bold mb-4">Create New Flashcard</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
@@ -95,7 +95,7 @@ export default function NewFlashCardForm() {
         </div>
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-500"
+          className="w-full py-2 px-4 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-500 focus:outline-none focus:ring focus:ring-blue-500"
         >
           Create Flashcard
         </button>
