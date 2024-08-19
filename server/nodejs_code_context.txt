@@ -15,26 +15,35 @@ const languageClient = new LanguageServiceClient({
 
 export { vertexClient, languageClient };
 // File: controllers/flashcardController.js
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase.js';
-import flashcardService from '../services/flashcardService.js';
-import { getUserSubscriptionTier } from '../services/subscriptionService.js';
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebase.js";
+import flashcardService from "../services/flashcardService.js";
+import { getUserSubscriptionTier } from "../services/subscriptionService.js";
 
-const sharedFlashcardsCollection = collection(db, 'sharedFlashcards');
+const sharedFlashcardsCollection = collection(db, "sharedFlashcards");
 
 async function getFlashcardSets(req, res) {
   try {
     const userId = req.query.userId;
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
+    const setId = req.params.id;
+
+    if (!userId && !setId) {
+      return res.status(400).json({ error: "Missing userId or setId" });
     }
 
-    const subscriptionTier = await getUserSubscriptionTier(userId);
-    if (subscriptionTier === 'free') {
-      return res.status(403).json({ error: "Upgrade to Premium to access this feature" });
+    if (setId) {
+      const flashcardSet = await flashcardService.getFlashcardSet(setId);
+      return res.status(200).json(flashcardSet);
+    } else {
+      const subscriptionTier = await getUserSubscriptionTier(userId);
+      if (subscriptionTier === "free") {
+        return res
+          .status(403)
+          .json({ error: "Upgrade to Premium to access this feature" });
+      }
+      const flashcardSets = await flashcardService.getFlashcardsSets(userId);
+      res.status(200).json(flashcardSets);
     }
-    const flashcardSets = await flashcardService.getFlashcardsSets(userId);
-    res.status(200).json(flashcardSets);
   } catch (error) {
     console.error("Error getting flashcards sets", error);
     res.status(500).json({ error: "Failed to get flashcards sets" });
@@ -48,7 +57,11 @@ async function searchFlashcardSets(req, res) {
       return res.status(400).json({ error: "Missing userId or searchTerm" });
     }
 
-    const flashcardSets = await flashcardService.searchFlashcardSets(userId, searchTerm, shared === 'true');
+    const flashcardSets = await flashcardService.searchFlashcardSets(
+      userId,
+      searchTerm,
+      shared === "true"
+    );
     res.status(200).json(flashcardSets);
   } catch (error) {
     console.error("Error searching flashcards sets", error);
@@ -60,14 +73,20 @@ export async function shareFlashcardSet(req, res) {
   try {
     const { userId, setId, friendId } = req.body;
     if (!userId || !setId || !friendId) {
-      return res.status(400).json({ error: 'Missing userId, setId, or friendId' });
+      return res
+        .status(400)
+        .json({ error: "Missing userId, setId, or friendId" });
     }
 
-    const newShare = await addDoc(sharedFlashcardsCollection, { userId, setId, friendId });
+    const newShare = await addDoc(sharedFlashcardsCollection, {
+      userId,
+      setId,
+      friendId,
+    });
     res.status(201).json({ id: newShare.id });
   } catch (error) {
-    console.error('Error sharing flashcard set:', error);
-    res.status(500).json({ error: 'Failed to share flashcard set' });
+    console.error("Error sharing flashcard set:", error);
+    res.status(500).json({ error: "Failed to share flashcard set" });
   }
 }
 
@@ -75,16 +94,22 @@ export async function getSharedFlashcardSets(req, res) {
   try {
     const { userId } = req.query;
     if (!userId) {
-      return res.status(400).json({ error: 'Missing userId' });
+      return res.status(400).json({ error: "Missing userId" });
     }
 
-    const q = query(sharedFlashcardsCollection, where('friendId', '==', userId));
+    const q = query(
+      sharedFlashcardsCollection,
+      where("friendId", "==", userId)
+    );
     const snapshot = await getDocs(q);
-    const sharedSets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const sharedSets = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     res.status(200).json(sharedSets);
   } catch (error) {
-    console.error('Error getting shared flashcard sets:', error);
-    res.status(500).json({ error: 'Failed to get shared flashcard sets' });
+    console.error("Error getting shared flashcard sets:", error);
+    res.status(500).json({ error: "Failed to get shared flashcard sets" });
   }
 }
 
@@ -94,6 +119,7 @@ export default {
   shareFlashcardSet,
   getSharedFlashcardSets,
 };
+
 // File: controllers/flashcards.js
 import { db } from "../firebase.js";
 import {
@@ -463,31 +489,19 @@ export async function analyzeText(req, res) {
   }
 }
 // File: controllers/googleVertexController.js
-import { vertexClient } from '../lib/googleClient.js';
+import { generateContent } from '../services/geminiAIService.js';
 
-export async function generateContent(req, res) {
+export async function generateContentController(req, res) {
   try {
     const { prompt } = req.body;
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
-    const location = 'us-central1';
-    const endpointId = process.env.GOOGLE_CLOUD_ENDPOINT_ID;
-
-    const request = {
-      endpoint: `projects/${projectId}/locations/${location}/endpoints/${endpointId}`,
-      instances: [{ content: prompt }],
-    };
-
-    const [response] = await vertexClient.predict(request);
-    if (response.predictions && response.predictions.length > 0) {
-      res.status(200).json({ content: response.predictions[0].content });
-    } else {
-      res.status(500).json({ error: 'No predictions returned from Vertex AI' });
-    }
+    const generatedContent = await generateContent(prompt);
+    res.status(200).json({ content: generatedContent });
   } catch (error) {
     console.error('Error generating content:', error.message);
     res.status(500).json({ error: 'Failed to generate content' });
   }
 }
+
 // File: controllers/progressController.js
 import progressService from '../services/progressService.js';
 
@@ -726,6 +740,16 @@ router.post("/send-request", friendController.sendFriendRequest);
 router.post("/accept-request", friendController.acceptFriendRequest);
 router.post("/reject-request", friendController.rejectFriendRequest);
 router.get("/requests", friendController.getFriendRequests);
+
+export default router;
+
+// File: routes/gemini.js
+import express from 'express';
+import { generateContentController } from '../controllers/googleVertexController.js';
+
+const router = express.Router();
+
+router.post('/generate-content', generateContentController);
 
 export default router;
 
