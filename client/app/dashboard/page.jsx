@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from 'react';
 import { Skeleton, Card, CardContent, Typography, Button, CardActions, Pagination } from '@mui/material';
 import SideNav from '../components/SideNav';
