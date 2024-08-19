@@ -3,6 +3,13 @@ import { Modal, Box, Typography, Button, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 const SubscriptionModal = ({ open, handleClose, handleGoPro }) => {
+
+  const handleCloseClick = () => {
+    const freeUseTime = new Date();
+    freeUseTime.setHours(freeUseTime.getHours() + 4); // Set free use time 4 hours ahead
+    localStorage.setItem('freeUseUntil', freeUseTime.toISOString());
+    handleClose();
+  };
   return (
     <Modal open={open} onClose={handleClose}>
       <Box

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Skeleton, Card, CardContent, Typography, Button, CardActions, Pagination } from '@mui/material';
 import SideNav from '../components/SideNav';
 import FlashcardForm from '../components/FlashcardForm';
+import SubscriptionModal from '../components/SubscriptionModal';
 import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from '../services/flashcardService';
 import './styles.css';
 
@@ -12,7 +13,11 @@ function DashBoardPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [messageCount, setMessageCount] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [freeUsageTime, setFreeUsageTime] = useState(true);
   const flashcardsPerPage = 6;
+  const messageLimit = 5;
 
   useEffect(() => {
     const fetchFlashcardSets = async () => {
@@ -44,6 +49,14 @@ function DashBoardPage() {
 
     fetchFlashcardSets();
     fetchProgressAndStreak();
+
+    // Check free usage time
+    const freeUseUntil = localStorage.getItem('freeUseUntil');
+    if (freeUseUntil && new Date(freeUseUntil) > new Date()) {
+      setFreeUsageTime(true);
+    } else {
+      setFreeUsageTime(false);
+    }
   }, []);
 
   const handleDelete = async (setId) => {
@@ -56,6 +69,11 @@ function DashBoardPage() {
   };
 
   const handleFlashcardsGenerated = async (newFlashcards) => {
+    if (messageCount >= messageLimit && !freeUsageTime) {
+      setIsModalVisible(true);
+      return;
+    }
+
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -64,6 +82,7 @@ function DashBoardPage() {
         flipped: false,
       }));
       setFlashcardSets([...flashcardSets, ...newFlashcardsWithFlippedState]);
+      setMessageCount(messageCount + 1); // Increment message count
     } catch (error) {
       console.error('Error generating flashcards:', error);
     } finally {
@@ -79,6 +98,10 @@ function DashBoardPage() {
     setFlashcardSets(flashcardSets.map(set => 
       set.id === setId ? { ...set, flipped: !set.flipped } : set
     ));
+  };
+
+  const handleGoPro = () => {
+    window.location.href = '/subscription'; // Redirect to subscription page
   };
 
   const indexOfLastFlashcard = currentPage * flashcardsPerPage;
@@ -173,6 +196,7 @@ function DashBoardPage() {
           />
         </div>
       </div>
+      <SubscriptionModal open={isModalVisible} handleClose={() => setIsModalVisible(false)} handleGoPro={handleGoPro} /> {/* Include SubscriptionModal */}
     </div>
   );
 }
