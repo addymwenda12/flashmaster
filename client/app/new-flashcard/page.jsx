@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { API_BASE_URL } from '../config';
+import { createFlashcard } from '../services/flashcardService';
 
 export default function NewFlashCardForm() {
   const [userId, setUserId] = useState('');
@@ -22,24 +22,15 @@ export default function NewFlashCardForm() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/flashcards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, question, answer }),
-      });
+      const response = await createFlashcard(userId, { question, answer });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.status === 201) {
         setSuccess('Flashcard created successfully!');
-        // Clear form fields after successful submission
         setUserId('');
         setQuestion('');
         setAnswer('');
       } else {
-        setError(result.error || 'Failed to create flashcard.');
+        setError(response.data.error || 'Failed to create flashcard.');
       }
     } catch (error) {
       console.error('Error:', error);
