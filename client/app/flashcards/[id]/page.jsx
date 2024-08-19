@@ -2,8 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Flashcard from '../../components/Flashcard';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config';
+import { getFlashcardSet } from '@/app/services/flashcardService';
 
 export default function FlashcardSetPage({ params }) {
   const { id } = params; // Get the dynamic id from the params
@@ -14,7 +13,7 @@ export default function FlashcardSetPage({ params }) {
   useEffect(() => {
     const fetchFlashcards = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/flashcards/${id}`);
+        const response = await getFlashcardSet(id);
         setFlashcards(response.data);
       } catch (error) {
         setError('Failed to fetch flashcards');
