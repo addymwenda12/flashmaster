@@ -1,14 +1,15 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import SideNav from "../components/SideNav";
-import FlashcardForm from "../components/FlashcardForm";
-import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from "../services/flashcardService";
+import React, { useEffect, useState } from 'react';
+import { Skeleton } from '@mui/material';
+import SideNav from '../components/SideNav';
+import FlashcardForm from '../components/FlashcardForm';
+import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from '../services/flashcardService';
 
 function DashBoardPage() {
   const [flashcardSets, setFlashcardSets] = useState([]);
   const [progress, setProgress] = useState(0);
   const [dailyStreak, setDailyStreak] = useState(0);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Fetch flashcard sets from the API
@@ -17,7 +18,7 @@ function DashBoardPage() {
         const response = await getFlashcardSets();
         setFlashcardSets(response.data);
       } catch (error) {
-        setError(error.message || "Failed to fetch flashcard sets.");
+        setError(error.message || 'Failed to fetch flashcard sets.');
       }
     };
 
@@ -26,13 +27,13 @@ function DashBoardPage() {
       try {
         const [progressResponse, streakResponse] = await Promise.all([
           getProgress(),
-          getDailyStreak()
+          getDailyStreak(),
         ]);
 
         setProgress(progressResponse.data.progress);
-        setDailyStreak(streakResponse.data.streak); 
+        setDailyStreak(streakResponse.data.streak);
       } catch (error) {
-        setError(error.message || "Failed to fetch progress or daily streak.");
+        setError(error.message || 'Failed to fetch progress or daily streak.');
       }
     };
 
@@ -43,14 +44,23 @@ function DashBoardPage() {
   const handleDelete = async (setId) => {
     try {
       await deleteFlashcardSet(setId);
-      setFlashcardSets(flashcardSets.filter(set => set.id !== setId));
+      setFlashcardSets(flashcardSets.filter((set) => set.id !== setId));
     } catch (error) {
-      setError(error.message || "Failed to delete flashcard set.");
+      setError(error.message || 'Failed to delete flashcard set.');
     }
   };
 
-  const handleFlashcardsGenerated = (newFlashcards) => {
-    setFlashcardSets([...flashcardSets, ...newFlashcards]);
+  const handleFlashcardsGenerated = async (newFlashcards) => {
+    setLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      setFlashcardSets([...flashcardSets, ...newFlashcards]);
+    } catch (error) {
+      console.error('Error generating flashcards:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,7 +72,7 @@ function DashBoardPage() {
 
         {/* Flashcard Form */}
         <FlashcardForm onFlashcardsGenerated={handleFlashcardsGenerated} />
-        
+
         {/* Progress Bar */}
         <div className="mb-5">
           <h2 className="text-xl font-semibold mb-2">Study Progress</h2>
@@ -92,7 +102,15 @@ function DashBoardPage() {
 
         {/* Flashcard Sets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {flashcardSets.length === 0 ? (
+          {loading ? (
+            Array.from(new Array(6)).map((_, index) => (
+              <div key={index} className="bg-white shadow-xl rounded-lg p-4">
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="rectangular" height={118} />
+              </div>
+            ))
+          ) : flashcardSets.length === 0 ? (
             <p>No flashcard sets available.</p>
           ) : (
             flashcardSets.map((set) => (
