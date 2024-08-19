@@ -30,7 +30,7 @@ async function getFlashcardSets(req, res) {
     }
 
     const subscriptionTier = await getUserSubscriptionTier(userId);
-    if (subbscriptionTier === 'free') {
+    if (subscriptionTier === 'free') {
       return res.status(403).json({ error: "Upgrade to Premium to access this feature" });
     }
     const flashcardSets = await flashcardService.getFlashcardsSets(userId);
@@ -307,11 +307,14 @@ async function createFlashcardInSet(req, res) {
     if (!setId || !data) {
       return res.status(400).json({ error: "Missing setId or data" });
     }
-    const newFlashcard = await flashcardsetService.createFlashcardInSet(setId, data);
+    const newFlashcard = await flashcardsetService.createFlashcardInSet(
+      setId,
+      data
+    );
     res.status(201).json(newFlashcard);
   } catch (error) {
     console.error("Error creating flashcard:", error);
-    res.status(500).json({ error: "Failed to create flashcard in set"});
+    res.status(500).json({ error: "Failed to create flashcard in set" });
   }
 }
 
@@ -322,13 +325,19 @@ async function updateFlashcardInSet(req, res) {
     const flashcardId = req.params.flashcardId;
     const data = req.body;
     if (!setId || !flashcardId || !data) {
-      return res.status(400).json({ error: "Missing setId, flashcardId, or data" });
+      return res
+        .status(400)
+        .json({ error: "Missing setId, flashcardId, or data" });
     }
-    const updatedFlashcard = await flashcardsetService.updateFlashcardInSet(setId, flashcardId, data);
+    const updatedFlashcard = await flashcardsetService.updateFlashcardInSet(
+      setId,
+      flashcardId,
+      data
+    );
     res.status(200).json(updatedFlashcard);
   } catch (error) {
     console.error("Error updating flashcard in set:", error);
-    res.status(500).json({ error: "Failed to update flashcard in set"});
+    res.status(500).json({ error: "Failed to update flashcard in set" });
   }
 }
 
@@ -340,11 +349,14 @@ async function deleteFlashcardInSet(req, res) {
     if (!setId || !flashcardId) {
       return res.status(400).json({ error: "Missing setId or flashcardId" });
     }
-    const deletedFlashcard = await flashcardsetService.deleteFlashcardInSet(setId, flashcardId);
+    const deletedFlashcard = await flashcardsetService.deleteFlashcardInSet(
+      setId,
+      flashcardId
+    );
     res.status(200).json(deletedFlashcard);
   } catch (error) {
     console.error("Error deleting flashcard in set:", error);
-    res.status(500).json({ error: "Failed to delete flashcard in set"});
+    res.status(500).json({ error: "Failed to delete flashcard in set" });
   }
 }
 
@@ -354,6 +366,7 @@ export default {
   updateFlashcardInSet,
   deleteFlashcardInSet,
 };
+
 // File: controllers/friendController.js
 import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -616,6 +629,9 @@ router.post("/", async (req, res) => {
 /* READ ROUTES */
 // Route to get flashcard sets
 router.get("/sets", flashcardController.getFlashcardSets);
+
+// Route to get a specific flashcard set
+router.get("/sets/:id", flashcardController.getFlashcardSets);
 
 // Route to get study progress
 router.get("/progress", progressController.getStudyProgress);
