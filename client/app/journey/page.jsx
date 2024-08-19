@@ -2,7 +2,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import SideNav from "../components/SideNav";
-import { API_BASE_URL } from "../config";
+import {
+  getStudyProgress,
+  getDailyStudyStreak,
+  getStatistics,
+} from "../services/flashcardService";
 
 function JourneyPage() {
   const [progress, setProgress] = useState(0);
@@ -15,8 +19,8 @@ function JourneyPage() {
     const fetchProgressAndStreak = async () => {
       try {
         const [progressResponse, streakResponse] = await Promise.all([
-          axios.get(`${API_BASE_URL}/progress`),
-          axios.get(`${API_BASE_URL}/daily-streak`),
+          getStudyProgress(),
+          getDailyStudyStreak(),
         ]);
 
         setProgress(progressResponse.data.progress);
@@ -29,7 +33,7 @@ function JourneyPage() {
     // Fetch study statistics
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/statistics`);
+        const response = await getStatistics();
         setStatistics(response.data);
       } catch (error) {
         setError(error.message || "Failed to fetch statistics.");
@@ -53,11 +57,19 @@ function JourneyPage() {
           <h2 className="text-xl font-semibold mb-2">Study Progress</h2>
           <div className="relative pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-blue-600">{progress}%</span>
+              <span className="text-xs font-medium text-blue-600">
+                {progress}%
+              </span>
             </div>
             <div className="flex mt-2">
-              <div className="relative flex-grow bg-blue-200 rounded-full" style={{ height: "8px" }}>
-                <div className="absolute bg-blue-600 rounded-full" style={{ width: `${progress}%`, height: "8px" }}></div>
+              <div
+                className="relative flex-grow bg-blue-200 rounded-full"
+                style={{ height: "8px" }}
+              >
+                <div
+                  className="absolute bg-blue-600 rounded-full"
+                  style={{ width: `${progress}%`, height: "8px" }}
+                ></div>
               </div>
             </div>
           </div>
@@ -72,8 +84,12 @@ function JourneyPage() {
         {/* Study Statistics */}
         <div className="mb-5">
           <h2 className="text-xl font-semibold mb-2">Study Statistics</h2>
-          <p className="text-lg">Total Cards Reviewed: {statistics.totalCardsReviewed}</p>
-          <p className="text-lg">Total Time Studied: {statistics.totalTimeStudied} mins</p>
+          <p className="text-lg">
+            Total Cards Reviewed: {statistics.totalCardsReviewed}
+          </p>
+          <p className="text-lg">
+            Total Time Studied: {statistics.totalTimeStudied} mins
+          </p>
         </div>
       </div>
     </div>
