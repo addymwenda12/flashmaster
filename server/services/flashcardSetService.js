@@ -57,7 +57,7 @@ async function updateFlashcardInSet(setId, flashcardId, data) {
   }
 
   try {
-    const flashcardRef = doc(db, "flashcards", flashcardId);
+    const flashcardRef = doc(db, "flashcardSets", setId, "flashcards", flashcardId);
     await updateDoc(flashcardRef, {
       ...data,
       updatedAt: new Date(),

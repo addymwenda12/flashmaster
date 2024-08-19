@@ -1,5 +1,5 @@
 import { db } from '../firebase.js';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 
 const flashcardsCollection = collection(db, 'flashcards');
 
@@ -41,7 +41,28 @@ async function searchFlashcardSets(userId, searchTerm, shared = false) {
   }
 }
 
+async function getFlashcardSet(setId) {
+  if (!setId) {
+    throw new Error("Invalid input: setId is required");
+  }
+
+  try {
+    const flashcardSetRef = doc(db, 'flashcards', setId);
+    const flashcardSetSnap = await getDoc(flashcardSetRef);
+    
+    if (flashcardSetSnap.exists()) {
+      return { id: flashcardSetSnap.id, ...flashcardSetSnap.data() };
+    } else {
+      throw new Error("Flashcard set not found");
+    }
+  } catch (error) {
+    console.error("Error getting flashcard set: ", error);
+    throw error;
+  }
+}
+
 export default {
   getFlashcardsSets,
   searchFlashcardSets,
+  getFlashcardSet,
 };

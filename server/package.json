@@ -16,6 +16,7 @@
     "@google-cloud/aiplatform": "^3.26.0",
     "@google-cloud/language": "^6.5.0",
     "@google-cloud/vertexai": "^1.4.1",
+    "@google/generative-ai": "^0.17.0",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5",
