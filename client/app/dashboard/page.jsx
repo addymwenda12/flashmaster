@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import SideNav from "../components/SideNav";
+import FlashcardForm from "../components/FlashcardForm";
 import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from "../services/flashcardService";
 
 function DashBoardPage() {
@@ -48,12 +49,19 @@ function DashBoardPage() {
     }
   };
 
+  const handleFlashcardsGenerated = (newFlashcards) => {
+    setFlashcardSets([...flashcardSets, ...newFlashcards]);
+  };
+
   return (
     <div className="flex">
       <SideNav />
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold mb-5">Dashboard</h1>
         {error && <div className="text-red-500">{error}</div>}
+
+        {/* Flashcard Form */}
+        <FlashcardForm onFlashcardsGenerated={handleFlashcardsGenerated} />
         
         {/* Progress Bar */}
         <div className="mb-5">
