@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { API_BASE_URL } from '../../config';
+import { getFlashcard, updateFlashcard } from '../../services/flashcardService';
 
 export default function EditFlashCardPage() {
   const router = useRouter();
@@ -17,16 +17,11 @@ export default function EditFlashCardPage() {
     if (id) {
       const fetchFlashcard = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/flashcards/${id}`);
-          const data = await response.json();
+          const data = await getFlashcard(id);
 
-          if (response.ok) {
-            setFlashcard(data);
-            setQuestion(data.question);
-            setAnswer(data.answer);
-          } else {
-            setError('Failed to fetch flashcard data.');
-          }
+          setFlashcard(data);
+          setQuestion(data.question);
+          setAnswer(data.answer);
         } catch (error) {
           console.error('Error:', error);
           setError('An error occurred while fetching flashcard data.');
@@ -50,22 +45,9 @@ export default function EditFlashCardPage() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}}/flashcards/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ question, answer }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setSuccess('Flashcard updated successfully!');
-        router.push(`/flashcards/${id}`);
-      } else {
-        setError(result.error || 'Failed to update flashcard.');
-      }
+      await updateFlashcard(id, { question, answer });
+      setSuccess('Flashcard updated successfully!');
+      router.push(`/flashcards/${id}`);
     } catch (error) {
       console.error('Error:', error);
       setError('An error occurred while updating the flashcard.');
