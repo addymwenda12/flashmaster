@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import axios from 'axios';
 import SideNav from "../components/SideNav";
-import { API_BASE_URL } from "../config";
+import { getFlashcardSets } from "../services/flashcardService";
 
 function DailyChallengePage() {
   const [challengeSet, setChallengeSet] = useState(null);
@@ -12,7 +11,7 @@ function DailyChallengePage() {
     // Fetch flashcard sets from the API
     const fetchFlashcardSets = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/flashcards/sets`);
+        const response = await getFlashcardSets();
         const sets = response.data;
 
         if (sets.length > 0) {
