@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Skeleton } from '@mui/material';
+import { Skeleton, Card, CardContent, Typography, Button, CardActions } from '@mui/material';
 import SideNav from '../components/SideNav';
 import FlashcardForm from '../components/FlashcardForm';
 import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from '../services/flashcardService';
@@ -54,7 +54,7 @@ function DashBoardPage() {
     setLoading(true);
     try {
       // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setFlashcardSets([...flashcardSets, ...newFlashcards]);
     } catch (error) {
       console.error('Error generating flashcards:', error);
@@ -104,39 +104,39 @@ function DashBoardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from(new Array(6)).map((_, index) => (
-              <div key={index} className="bg-white shadow-xl rounded-lg p-4">
-                <Skeleton variant="text" width="80%" />
-                <Skeleton variant="text" width="60%" />
-                <Skeleton variant="rectangular" height={118} />
-              </div>
+              <Card key={index} className="bg-white shadow-xl rounded-lg p-4">
+                <CardContent>
+                  <Skeleton variant="text" width="80%" />
+                  <Skeleton variant="text" width="60%" />
+                  <Skeleton variant="rectangular" height={118} />
+                </CardContent>
+              </Card>
             ))
           ) : flashcardSets.length === 0 ? (
-            <p>No flashcard sets available.</p>
+            <Typography>No flashcard sets available.</Typography>
           ) : (
             flashcardSets.map((set) => (
-              <div key={set.id} className="bg-white shadow-xl rounded-lg p-4">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {set.title}
-                </h2>
-                <p className="text-gray-600 mb-4">Number of Cards: {set.cards}</p>
-                <p className="text-gray-500 text-sm">
-                  Last Updated: {set.lastUpdated}
-                </p>
-                <div className="mt-4 flex justify-between">
-                  <a
-                    href={`/flashcards/${set.id}`}
-                    className="text-blue-500 hover:underline"
-                  >
+              <Card key={set.id} className="bg-white shadow-xl rounded-lg p-4">
+                <CardContent>
+                  <Typography variant="h5" component="div">
+                    {set.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Number of Cards: {set.cards}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Last Updated: {set.lastUpdated}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button size="small" href={`/flashcards/${set.id}`}>
                     View Details
-                  </a>
-                  <button
-                    onClick={() => handleDelete(set.id)}
-                    className="text-red-500 hover:underline"
-                  >
+                  </Button>
+                  <Button size="small" color="error" onClick={() => handleDelete(set.id)}>
                     Delete
-                  </button>
-                </div>
-              </div>
+                  </Button>
+                </CardActions>
+              </Card>
             ))
           )}
         </div>
