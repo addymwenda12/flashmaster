@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Skeleton, Card, CardContent, Typography, Button, CardActions } from '@mui/material';
+import { Skeleton, Card, CardContent, Typography, Button, CardActions, Pagination } from '@mui/material';
 import SideNav from '../components/SideNav';
 import FlashcardForm from '../components/FlashcardForm';
 import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from '../services/flashcardService';
@@ -10,6 +10,8 @@ function DashBoardPage() {
   const [dailyStreak, setDailyStreak] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const flashcardsPerPage = 6;
 
   useEffect(() => {
     // Fetch flashcard sets from the API
@@ -63,6 +65,14 @@ function DashBoardPage() {
     }
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const indexOfLastFlashcard = currentPage * flashcardsPerPage;
+  const indexOfFirstFlashcard = indexOfLastFlashcard - flashcardsPerPage;
+  const currentFlashcards = flashcardSets.slice(indexOfFirstFlashcard, indexOfLastFlashcard);
+
   return (
     <div className="flex">
       <SideNav />
@@ -112,10 +122,10 @@ function DashBoardPage() {
                 </CardContent>
               </Card>
             ))
-          ) : flashcardSets.length === 0 ? (
+          ) : currentFlashcards.length === 0 ? (
             <Typography>No flashcard sets available.</Typography>
           ) : (
-            flashcardSets.map((set) => (
+            currentFlashcards.map((set) => (
               <Card key={set.id} className="bg-white shadow-xl rounded-lg p-4">
                 <CardContent>
                   <Typography variant="h5" component="div">
@@ -139,6 +149,16 @@ function DashBoardPage() {
               </Card>
             ))
           )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-center mt-4">
+          <Pagination
+            count={Math.ceil(flashcardSets.length / flashcardsPerPage)}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+          />
         </div>
       </div>
     </div>
