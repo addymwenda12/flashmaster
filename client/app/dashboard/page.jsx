@@ -3,6 +3,7 @@ import { Skeleton, Card, CardContent, Typography, Button, CardActions, Paginatio
 import SideNav from '../components/SideNav';
 import FlashcardForm from '../components/FlashcardForm';
 import { getFlashcardSets, deleteFlashcardSet, getProgress, getDailyStreak } from '../services/flashcardService';
+import './styles.css';
 
 function DashBoardPage() {
   const [flashcardSets, setFlashcardSets] = useState([]);
@@ -14,17 +15,19 @@ function DashBoardPage() {
   const flashcardsPerPage = 6;
 
   useEffect(() => {
-    // Fetch flashcard sets from the API
     const fetchFlashcardSets = async () => {
       try {
         const response = await getFlashcardSets();
-        setFlashcardSets(response.data);
+        const flashcardsWithFlippedState = response.data.map(flashcard => ({
+          ...flashcard,
+          flipped: false,
+        }));
+        setFlashcardSets(flashcardsWithFlippedState);
       } catch (error) {
         setError(error.message || 'Failed to fetch flashcard sets.');
       }
     };
 
-    // Fetch study progress and daily streak
     const fetchProgressAndStreak = async () => {
       try {
         const [progressResponse, streakResponse] = await Promise.all([
@@ -55,9 +58,12 @@ function DashBoardPage() {
   const handleFlashcardsGenerated = async (newFlashcards) => {
     setLoading(true);
     try {
-      // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      setFlashcardSets([...flashcardSets, ...newFlashcards]);
+      const newFlashcardsWithFlippedState = newFlashcards.map(flashcard => ({
+        ...flashcard,
+        flipped: false,
+      }));
+      setFlashcardSets([...flashcardSets, ...newFlashcardsWithFlippedState]);
     } catch (error) {
       console.error('Error generating flashcards:', error);
     } finally {
@@ -67,6 +73,12 @@ function DashBoardPage() {
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
+  };
+
+  const handleFlip = (setId) => {
+    setFlashcardSets(flashcardSets.map(set => 
+      set.id === setId ? { ...set, flipped: !set.flipped } : set
+    ));
   };
 
   const indexOfLastFlashcard = currentPage * flashcardsPerPage;
@@ -80,10 +92,8 @@ function DashBoardPage() {
         <h1 className="text-2xl font-bold mb-5">Dashboard</h1>
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* Flashcard Form */}
         <FlashcardForm onFlashcardsGenerated={handleFlashcardsGenerated} />
 
-        {/* Progress Bar */}
         <div className="mb-5">
           <h2 className="text-xl font-semibold mb-2">Study Progress</h2>
           <div className="relative pt-1">
@@ -91,26 +101,18 @@ function DashBoardPage() {
               <span className="text-xs font-medium text-blue-600">{progress}%</span>
             </div>
             <div className="flex mt-2">
-              <div
-                className="relative flex-grow bg-blue-200 rounded-full"
-                style={{ height: '8px' }}
-              >
-                <div
-                  className="absolute bg-blue-600 rounded-full"
-                  style={{ width: `${progress}%`, height: '8px' }}
-                ></div>
+              <div className="relative flex-grow bg-blue-200 rounded-full" style={{ height: '8px' }}>
+                <div className="absolute bg-blue-600 rounded-full" style={{ width: `${progress}%`, height: '8px' }}></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Daily Streak */}
         <div className="mb-5">
           <h2 className="text-xl font-semibold mb-2">Daily Study Streak</h2>
           <p className="text-lg font-bold">{dailyStreak} days</p>
         </div>
 
-        {/* Flashcard Sets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from(new Array(6)).map((_, index) => (
@@ -126,18 +128,29 @@ function DashBoardPage() {
             <Typography>No flashcard sets available.</Typography>
           ) : (
             currentFlashcards.map((set) => (
-              <Card key={set.id} className="bg-white shadow-xl rounded-lg p-4">
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    {set.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Number of Cards: {set.cards}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Last Updated: {set.lastUpdated}
-                  </Typography>
-                </CardContent>
+              <Card key={set.id} className="bg-white shadow-xl rounded-lg p-4 flashcard" onClick={() => handleFlip(set.id)}>
+                <div className={`flashcard-inner ${set.flipped ? 'flipped' : ''}`}>
+                  <div className="flashcard-front">
+                    <CardContent>
+                      <Typography variant="h5" component="div">
+                        {set.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Number of Cards: {set.cards}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Last Updated: {set.lastUpdated}
+                      </Typography>
+                    </CardContent>
+                  </div>
+                  <div className="flashcard-back">
+                    <CardContent>
+                      <Typography variant="h5" component="div">
+                        {set.answer}
+                      </Typography>
+                    </CardContent>
+                  </div>
+                </div>
                 <CardActions>
                   <Button size="small" href={`/flashcards/${set.id}`}>
                     View Details
@@ -151,7 +164,6 @@ function DashBoardPage() {
           )}
         </div>
 
-        {/* Pagination Controls */}
         <div className="flex justify-center mt-4">
           <Pagination
             count={Math.ceil(flashcardSets.length / flashcardsPerPage)}
