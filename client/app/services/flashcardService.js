@@ -1,4 +1,4 @@
-import api from '../apiService';
+import api from "../apiService";
 
 export const getFlashcardSets = async (userId) => {
   return api.get(`/flashcards/sets?userId=${userId}`);
@@ -9,15 +9,17 @@ export const getFlashcardSet = async (setId) => {
 };
 
 export const createFlashcardSet = async (data) => {
-  return api.post('/flashcards/sets', data);
+  return api.post("/flashcards/sets", data);
 };
 
 export const searchFlashcardSets = async (userId, searchTerm, shared) => {
-  return api.get(`/flashcards/search?userId=${userId}&searchTerm=${searchTerm}&shared=${shared}`);
+  return api.get(
+    `/flashcards/search?userId=${userId}&searchTerm=${searchTerm}&shared=${shared}`
+  );
 };
 
 export const shareFlashcardSet = async (data) => {
-  return api.post('/flashcards/share', data);
+  return api.post("/flashcards/share", data);
 };
 
 export const getSharedFlashcardSets = async (userId) => {
@@ -37,7 +39,7 @@ export const deleteFlashcardInSet = async (setId, flashcardId) => {
 };
 
 export const createFlashcard = async (userId, data) => {
-  return api.post('/flashcards', { userId, ...data });
+  return api.post("/flashcards", { userId, ...data });
 };
 
 export const getFlashcards = async (userId) => {
@@ -53,17 +55,38 @@ export const deleteFlashcard = async (flashcardId) => {
 };
 
 export const submitAssessment = async (flashcardId, assessment) => {
-  return api.post('/flashcards/study-session/assessment', { flashcardId, assessment });
+  return api.post("/flashcards/study-session/assessment", {
+    flashcardId,
+    assessment,
+  });
 };
 
 export const getStudyProgress = async () => {
-  return api.get('/flashcards/progress');
+  return api.get("/flashcards/progress");
 };
 
 export const getDailyStudyStreak = async () => {
-  return api.get('/flashcards/daily-streak');
+  return api.get("/flashcards/daily-streak");
 };
 
 export const getStatistics = async () => {
-  return api.get('/flashcards/statistics');
+  return api.get("/flashcards/statistics");
+};
+
+export const getFlashcardSetProgress = async (setId) => {
+  return api.get(`/flashcards/sets/${setId}/progress`);
+};
+
+export const generateFlashcards = (prompt) => {
+  return api.post("/gemini/generate-content", { prompt });
+};
+
+export const analyzeDocument = (file) => {
+  const formData = new FormData();
+  formData.append("document", file);
+  return api.post("/languages/analyze-text", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    }
+  });
 };
