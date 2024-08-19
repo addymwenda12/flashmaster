@@ -55,3 +55,15 @@ export const deleteFlashcard = async (flashcardId) => {
 export const submitAssessment = async (flashcardId, assessment) => {
   return api.post('/flashcards/study-session/assessment', { flashcardId, assessment });
 };
+
+export const getStudyProgress = async () => {
+  return api.get('/flashcards/progress');
+};
+
+export const getDailyStudyStreak = async () => {
+  return api.get('/flashcards/daily-streak');
+};
+
+export const getStatistics = async () => {
+  return api.get('/flashcards/statistics');
+};
