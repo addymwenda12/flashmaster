@@ -1,36 +1,31 @@
-"use client";
 import React, { useEffect, useState } from "react";
-import axios from 'axios';
 import Link from "next/link";
-import { API_BASE_URL } from "../config";
+import { getFlashcardSets, deleteFlashcardInSet } from "../services/flashcardService";
 
 function FlashcardSets() {
   const [flashcardSets, setFlashcardSets] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFlashcardSets = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/flashcards/sets`);
-        setFlashcardSets(response.data);
-      } catch (error) {
-        setError(error.message || "Failed to fetch flashcard sets.");
-      }
-    };
-
     fetchFlashcardSets();
   }, []);
 
-  const handleDelete = async (id) => {
+  const fetchFlashcardSets = async () => {
+    try {
+      const response = await getFlashcardSets();
+      setFlashcardSets(response.data);
+    } catch (error) {
+      setError(error.message || "Failed to fetch flashcard sets.");
+    }
+  };
+
+  const handleDelete = async (setId) => {
     if (confirm("Are you sure you want to delete this flashcard set?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/flashcards/sets/${id}`);
-        // Remove the deleted flashcard set from the state
-        setFlashcardSets(flashcardSets.filter(set => set.id !== id));
-        alert("Flashcard set deleted successfully.");
+        await deleteFlashcardInSet(setId);
+        setFlashcardSets(flashcardSets.filter(set => set.id !== setId));
       } catch (error) {
-        console.error("Error deleting flashcard set:", error);
-        alert(error.response?.data?.error || "Failed to delete flashcard set.");
+        setError(error.message || "Failed to delete flashcard set.");
       }
     }
   };
