@@ -17,7 +17,11 @@ const app = express();
 
 /* CORS CONFIGURATION */
 const corsOptions = {
-  origin: [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:3001','https://flashmaster-frontend.vercel.app', 'https://flashmaster.vercel.app'],
+  origin: [
+    process.env.CLIENT_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ],
   credentials: true,
   optionsSuccessStatus: 200,
 };
@@ -32,7 +36,7 @@ app.use(express.json());
 // Serve static files from the React app
 // app.use(express.static(path.join(__dirname, '../client/out')));
 // app.get('*', (req, res) => {
-  // res.sendFile(path.join(__dirname, '../client/out/index.html'));
+// res.sendFile(path.join(__dirname, '../client/out/index.html'));
 // });
 
 /* ROUTES */

@@ -42,10 +42,10 @@ router.get("/sets", flashcardController.getFlashcardSets);
 router.get("/sets/:id", flashcardController.getFlashcardSets);
 
 // Route to get study progress
-router.get("/progress", progressController.getStudyProgress);
+router.get("/flashcards/progress", progressController.getStudyProgress);
 
 // Route to get daily study streaks
-router.get("/daily-streak", progressController.getDailyStudyStreak);
+router.get("/flashcards/daily-streak", progressController.getDailyStudyStreak);
 
 // Route to get statistics
 router.get("/statistics", statisticsController.getStatistics);
